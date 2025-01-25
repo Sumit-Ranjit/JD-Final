@@ -1,46 +1,9 @@
 const dbName = "BookingDatabase";
-    const storeName = "Bookings";
-    const dataUrl = "Data.json"; // Path to your Data.json file
-// Data to load into the IndexedDB
-const data = [
-  {
-    "@odata.etag": "",
-    "ItemInternalId": "",
-    "Sr_No": "803",
-    "Time_of_Entry": "45676.8351851852",
-    "Mobile_Number": "8891918467",
-    "Name": "Sherief",
-    "Email": "example@domain.com",
-    "Area": "Koyambedu",
-    "Hotel": "Super Townhouse Koyambedu Formerly Royal Plaza (Koyambedu, Chennai)",
-    "City": "Chennai",
-    "State": "Tamil Nadu",
-    "Requirement_Mentioned": "Super Townhouse Koyambedu Formerly Royal Plaza.",
-    "Search_Time": "2025-01-19 20:02:05",
-    "Call_Back_Time": "",
-    "Call_Back_Agent": "",
-    "Call Connected": "",
-    "Intent of call": "",
-    "Remarks if Others": "",
-    "Booking ID": "",
-    "checkin_Date": "",
-    "Checkout_date": "",
-    "No_Of_Rooms": "",
-    "Booking Created or not": "",
-    "Reason_of_Not_Booking": "",
-    "Prepay_Pitched": "",
-    "Prepay collected": "",
-    "Reason_of_non_prepay": "",
-    "Agent Remarks": "",
-    "Status": "Not Done",
-    "__PowerAppsId__": "",
-    "Date": "45676",
-  },
-  // Add more records as needed
-];
+const storeName = "Bookings";
+const dataUrl = "Data.json"; // Update with your actual GitHub raw URL
 
 // Function to initialize and populate the IndexedDB
-function loadDatabase() {
+async function loadDatabase() {
   const request = indexedDB.open(dbName, 1);
 
   // Handle database upgrade or creation
@@ -49,9 +12,8 @@ function loadDatabase() {
 
     // Create object store if it doesn't exist
     if (!db.objectStoreNames.contains(storeName)) {
-      const store =db.createObjectStore(storeName, { keyPath: "Mobile_Number" });
+      const store = db.createObjectStore(storeName, { keyPath: "Mobile_Number" });
       console.log(`Object store '${storeName}' created.`);
-  
 
       // Create indexes for faster querying
       store.createIndex("Mobile_Number", "Mobile_Number", { unique: true });
@@ -60,30 +22,60 @@ function loadDatabase() {
   };
 
   // Handle database opening success
-  request.onsuccess = (event) => {
+  request.onsuccess = async (event) => {
     const db = event.target.result;
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
 
-    // Add data to the database
-    data.forEach((record) => {
-      store.put(record); // Use put to avoid duplication
-    });
+    // Fetch data from the JSON file
+    try {
+      const response = await fetch(dataUrl);
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
 
-    transaction.oncomplete = () => {
-      console.log("Database populated successfully.");
-    };
+      const data = await response.json();
+      console.log("Data fetched:", data); // Log the fetched data
 
-    transaction.onerror = (event) => {
-      console.error("Error populating database:", event.target.error);
-    };
+      // Check if data is an array
+      if (!Array.isArray(data)) {
+        console.error("Data is not an array.");
+        return;
+      }
+
+      // Process and insert records using a new transaction for each record
+      for (const [index, record] of data.entries()) {
+        console.log(`Inserting record ${index + 1}:`, record);
+
+        const transaction = db.transaction(storeName, "readwrite");
+        const store = transaction.objectStore(storeName);
+
+        const putRequest = store.put(record);
+
+        putRequest.onsuccess = () => {
+          console.log(`Record ${index + 1} inserted successfully.`);
+        };
+
+        putRequest.onerror = (event) => {
+          console.error(`Error inserting record ${index + 1}:`, event.target.error);
+        };
+
+        // Wait for the transaction to complete before starting the next one
+        await new Promise((resolve, reject) => {
+          transaction.oncomplete = resolve;
+          transaction.onerror = (event) => reject(event.target.error);
+        });
+      }
+
+      console.log("All records inserted successfully.");
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    }
   };
 
-  // Handle database errors
+  // Handle database opening failure
   request.onerror = (event) => {
     console.error("Error opening database:", event.target.error);
   };
 }
 
 // Call the function to load the database
-document.addEventListener("DOMContentLoaded", loadDatabase);
+loadDatabase();
