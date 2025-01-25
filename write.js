@@ -37,7 +37,7 @@ function writeFormDataToDB(formData) {
 }
 
 // Handle form submission
-document.getElementById("user-input-form").addEventListener("submit", (event) => {
+document.getElementById("user-input-form").addEventListener("submit-btn"", (event) => {
   event.preventDefault(); // Prevent default form submission
 
   const formData = {
