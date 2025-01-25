@@ -1,20 +1,21 @@
-const dbName = "BookingDatabase";
-const storeName = "Bookings";
+const wdbName = "BookingDatabase";
+const wstoreName = "Bookings";
 
 // Function to write form data to IndexedDB
 function writeFormDataToDB(formData) {
-  const request = indexedDB.open(dbName);
+  const request = indexedDB.open(wdbName);
 
   request.onsuccess = (event) => {
     const db = event.target.result;
-    const transaction = db.transaction(storeName, "readwrite");
-    const store = transaction.objectStore(storeName);
+    const transaction = db.transaction(wstoreName, "readwrite");
+    const store = transaction.objectStore(wstoreName);
 
     // Add or update record in IndexedDB
     const putRequest = store.put(formData);
 
     putRequest.onsuccess = () => {
       console.log("Form data successfully written to the database.");
+      location.reload();
     };
 
     putRequest.onerror = (event) => {
