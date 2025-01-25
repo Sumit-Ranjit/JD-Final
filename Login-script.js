@@ -32,8 +32,8 @@ window.addEventListener("click", resetInactivityTimer);
 document.getElementById("loginForm").addEventListener("submit", async function (e) {
   e.preventDefault();
 
-  const username = document.getElementById("username").value;
-  const password = document.getElementById("password").value;
+  const username = document.getElementById("User_Name").value;
+  const password = document.getElementById("Password").value;
 
   try {
     // Fetch credentials from Credentials.json
@@ -65,7 +65,7 @@ document.getElementById("loginForm").addEventListener("submit", async function (
 
       resetInactivityTimer(); // Start the inactivity timer
       setTimeout(() => {
-        location.href = "refresh.html"; // Redirect to refresh.html
+        location.href = "new.html"; // Redirect to refresh.html
       }, 1000);
     } else {
       document.getElementById("message").textContent = "Invalid username or password.";
